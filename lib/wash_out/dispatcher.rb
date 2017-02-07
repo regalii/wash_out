@@ -55,15 +55,16 @@ module WashOut
         end
       end
 
-      hash
+      hash.with_indifferent_access
     end
 
     # Creates the final parameter hash based on the request spec and xml_data from the request
     def _load_params(spec, xml_data)
       params = HashWithIndifferentAccess.new
       spec.each do |param|
-        key = param.raw_name.to_sym
-        if xml_data.has_key? key
+        key = param.raw_name.to_s
+
+        if xml_data.has_key?(key)
           params[param.raw_name] = param.load(xml_data, key)
         end
       end
@@ -137,12 +138,16 @@ module WashOut
         header = HashWithIndifferentAccess.new(header)
       end
 
+      result = inject.call(result, @action_spec[:out])
+      # remove external container
+      result_without_container = result.first.map
+
       render :template => "wash_out/#{soap_config.wsdl_style}/response",
              :layout => false,
              :locals => {
                :header => header.present? ? inject.call(header, @action_spec[:header_out])
                                       : nil,
-               :result => inject.call(result, @action_spec[:out])
+               :result => result_without_container
              },
              :content_type => 'text/xml'
     end
@@ -251,7 +256,10 @@ module WashOut
     def xml_data
       envelope = request.env['wash_out.soap_data'].values_at(:envelope, :Envelope).compact.first
       xml_data = envelope.values_at(:body, :Body).compact.first || {}
-      return xml_data if soap_config.wsdl_style == "document"
+      if soap_config.wsdl_style == "document"
+        xml_data = xml_data.map { |k, str| [k.to_s.remove("soap_"), str] }.to_h
+        return xml_data
+      end
       xml_data = xml_data.values_at(soap_action.underscore.to_sym, soap_action.to_sym, request_input_tag.to_sym).compact.first || {}
     end
 

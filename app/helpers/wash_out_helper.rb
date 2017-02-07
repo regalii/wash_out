@@ -55,7 +55,10 @@ module WashOutHelper
             xml.tag! tag_name, v, param_options
           end
         else
-          xml.tag! tag_name, param.value, param_options
+          value = param.value
+          value = 0 if value.nil? && param.xsd_type == 'int'
+          value = 0.0 if value.nil? && param.xsd_type == 'double'
+          xml.tag! tag_name, value, param_options
         end
       end
     end
@@ -66,7 +69,12 @@ module WashOutHelper
 
     if param.struct?
       if !defined.include?(param.basic_type)
-        xml.tag! "xsd:complexType", :name => param.basic_type do
+
+        if controller.soap_config.wsdl_style == 'document'
+          xml.tag! "element", :name => param.element_type, :type => "tns:#{param.element_type}"
+        end
+
+        xml.tag! "xsd:complexType", :name => param.element_type do
           attrs, elems = [], []
           param.map.each do |value|
             more << value if value.struct?
@@ -92,7 +100,7 @@ module WashOutHelper
 
         defined << param.basic_type
       elsif !param.classified?
-        raise RuntimeError, "Duplicate use of `#{param.basic_type}` type name. Consider using classified types."
+        raise RuntimeError, "Duplicate use of `#{param.element_type}` type name. Consider using classified types."
       end
     end
 
@@ -108,5 +116,9 @@ module WashOutHelper
       data["#{'xsi:' if inject}maxOccurs"] = 'unbounded'
     end
     extend_with.merge(data)
+  end
+
+  def wsdl_occurence_part(param, inject, extend_with = {})
+    extend_with
   end
 end

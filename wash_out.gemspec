@@ -13,8 +13,7 @@ Gem::Specification.new do |s|
   s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]
   s.post_install_message = <<-EOS
-    Please replace `include WashOut::SOAP` with `soap_service`
-    in your controllers if you are upgrading from a version before 0.8.5.
+    You are using a custom version of wash_out made with <3 for Regalii
   EOS
   s.add_dependency("nori", ">= 2.0.0")
 end

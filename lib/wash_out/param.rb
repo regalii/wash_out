@@ -105,6 +105,10 @@ module WashOut
       return source_class.wash_out_param_name(@soap_config)
     end
 
+    def element_type
+      return basic_type.split('.').last.camelcase
+    end
+
     def xsd_type
       return 'int' if type.to_s == 'integer'
       return 'dateTime' if type.to_s == 'datetime'
@@ -113,7 +117,7 @@ module WashOut
 
     # Returns a WSDL namespaced identifier for this type.
     def namespaced_type
-      struct? ? "tns:#{basic_type}" : "xsd:#{xsd_type}"
+      struct? ? "tns:#{element_type}" : "xsd:#{xsd_type}"
     end
 
     # Parses a +definition+. The format of the definition is best described
