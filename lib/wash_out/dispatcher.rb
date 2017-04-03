@@ -138,15 +138,13 @@ module WashOut
       end
 
       result = inject.call(result, @action_spec[:out])
-      # remove external container
-      result_without_container = result.first.map
 
       render :template => "wash_out/#{soap_config.wsdl_style}/response",
              :layout => false,
              :locals => {
                :header => header.present? ? inject.call(header, @action_spec[:header_out])
                                       : nil,
-               :result => result_without_container
+               :result => soap_config.wsdl_style == "rpc" ? result : result.first.map
              },
              :content_type => 'text/xml'
     end
