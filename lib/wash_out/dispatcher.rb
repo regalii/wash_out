@@ -55,14 +55,14 @@ module WashOut
         end
       end
 
-      hash
+      hash.with_indifferent_access
     end
 
     # Creates the final parameter hash based on the request spec and xml_data from the request
     def _load_params(spec, xml_data)
       params = HashWithIndifferentAccess.new
       spec.each do |param|
-        key = param.raw_name.to_sym
+        key = param.raw_name.to_s
         if xml_data.has_key? key
           params[param.raw_name] = param.load(xml_data, key)
         end
