@@ -256,8 +256,13 @@ module WashOut
     def xml_data
       envelope = request.env['wash_out.soap_data'].values_at(:envelope, :Envelope).compact.first
       xml_data = envelope.values_at(:body, :Body).compact.first || {}
+
       if soap_config.wsdl_style == "document"
         xml_data = xml_data.map { |k, str| [k.to_s.remove("soap_"), str] }.to_h
+        return xml_data
+      end
+      if soap_config.wsdl_style == "document_hsbc"
+        xml_data = xml_data.map { |k, str| [k.to_s.remove("soap_"), str] }.to_h.values[0]
         return xml_data
       end
       xml_data = xml_data.values_at(soap_action.underscore.to_sym, soap_action.to_sym, request_input_tag.to_sym).compact.first || {}
