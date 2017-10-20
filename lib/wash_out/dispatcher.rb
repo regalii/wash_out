@@ -40,6 +40,8 @@ module WashOut
     end
 
     def _strip_empty_nodes(params, hash)
+      return unless hash
+
       hash.keys.each do |key|
         param = params.detect { |a| a.raw_name.to_s == key.to_s }
         next if !(param && hash[key].is_a?(Hash))
@@ -60,6 +62,8 @@ module WashOut
 
     # Creates the final parameter hash based on the request spec and xml_data from the request
     def _load_params(spec, xml_data)
+      return unless xml_data
+
       params = HashWithIndifferentAccess.new
       spec.each do |param|
         key = param.raw_name.to_s
