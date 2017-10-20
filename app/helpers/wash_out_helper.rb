@@ -96,7 +96,7 @@ module WashOutHelper
             end
           end
         when 'document'
-          xml.tag! "element", :name => param.element_type, :type => "tns:#{param.element_type}"
+          xml.tag! "xsd:element", :name => param.element_type, :type => "tns:#{param.element_type}"
           xml.tag! "xsd:complexType", :name => param.element_type do
             attrs, elems = [], []
             param.map.each do |value|
@@ -121,8 +121,8 @@ module WashOutHelper
             end
           end
         when 'document_hsbc'
-          xml.tag! "element", name: "#{param.element_type}#{part_type}" do
-            xml.tag! "xsd:complexType" do
+          if part_type.blank?
+            xml.tag! "xsd:complexType", name: "#{param.element_type}" do
               attrs, elems = [], []
               param.map.each do |value|
                 more << value if value.struct?
@@ -143,6 +143,32 @@ module WashOutHelper
 
               attrs.each do |value|
                 xml.tag! "xsd:attribute", wsdl_occurence(value, false, :name => value.attr_name, :type => value.namespaced_type)
+              end
+            end
+          else
+            xml.tag! "xsd:element", name: "#{param.element_type}#{part_type}" do
+              xml.tag! "xsd:complexType" do
+                attrs, elems = [], []
+                param.map.each do |value|
+                  more << value if value.struct?
+                  if value.attribute?
+                    attrs << value
+                  else
+                    elems << value
+                  end
+                end
+
+                if elems.any?
+                  xml.tag! "xsd:sequence" do
+                    elems.each do |value|
+                      xml.tag! "xsd:element", wsdl_occurence(value, false, :name => value.name, :type => value.namespaced_type)
+                    end
+                  end
+                end
+
+                attrs.each do |value|
+                  xml.tag! "xsd:attribute", wsdl_occurence(value, false, :name => value.attr_name, :type => value.namespaced_type)
+                end
               end
             end
           end
