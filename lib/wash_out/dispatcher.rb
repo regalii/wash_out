@@ -31,8 +31,15 @@ module WashOut
     end
 
     def _map_soap_parameters
-      self.params = _load_params action_spec[:in],
-        _strip_empty_nodes(action_spec[:in], xml_data)
+      data = xml_data
+
+      if soap_config.wsdl_style == "document_hsbc"
+        # Try to add the wrapper only at the first element
+        wrapper = action_spec[:in].try(:first).try(:raw_name)
+        data = {wrapper => data} if wrapper
+      end
+
+      self.params = _load_params(action_spec[:in], _strip_empty_nodes(action_spec[:in], data))
     end
 
     def _map_soap_headers
